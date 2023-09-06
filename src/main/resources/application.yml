@@ -1,9 +1,5 @@
 
 spring:
-  output:
-    ansi:  
-      enabled: always
-
-logging:
-  level: 
-    '[shop.mtcoding.demo]': DEBUG
+  profiles:
+    active:
+    - dev
