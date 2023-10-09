@@ -6,15 +6,14 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import shop.mtcoding.demo.domain.Book;
 import shop.mtcoding.demo.domain.BookRepository;
 import shop.mtcoding.demo.util.MailSender;
 import shop.mtcoding.demo.web.dto.request.BookSaveRequestDto;
+import shop.mtcoding.demo.web.dto.response.BookListResponseDto;
 import shop.mtcoding.demo.web.dto.response.BookResponseDto;
 
 @Service
@@ -44,18 +43,19 @@ public class BookService {
     }
 
     // 책목록
-    public List<BookResponseDto> getBookList() {
-        return bookRepository.findAll().stream()
+    public BookListResponseDto getBookList() {
+        List<BookResponseDto> bookResp = bookRepository.findAll().stream()
                 // 이거 test코드로 틀린 것 검증하여 아래로 바꿈 .map(new BookResponseDto()::toDto) // (==동일한 코드)
                 // .map((bookPS)->new BookResponseDto().toDto(bookPS))
                 .map((book) -> new BookResponseDto().toDto(book))
                 .collect(Collectors.toList());
-
+        // builder는 static
+        return BookListResponseDto.builder().items(bookResp).build();
     }
 
     // 책한건보기
     public BookResponseDto getBook(long id) {
-        Optional<Book> op = bookRepository.findById(1L);
+        Optional<Book> op = bookRepository.findById(id);
         return new BookResponseDto().toDto(op.orElseGet(Book::new));
     }
 
@@ -66,6 +66,7 @@ public class BookService {
     }
 
     // 책수정하기
+    @Transactional(rollbackOn = RuntimeException.class)
     public BookResponseDto updateBook(long id, BookSaveRequestDto requestDto) {
         Optional<Book> optionalBook = bookRepository.findById(id);
         if (optionalBook.isPresent()) {
