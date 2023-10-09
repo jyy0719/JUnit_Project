@@ -1,4 +1,4 @@
-package shop.mtcoding.demo.web.dto;
+package shop.mtcoding.demo.web.dto.response;
 
 import lombok.Getter;
 import shop.mtcoding.demo.domain.Book;

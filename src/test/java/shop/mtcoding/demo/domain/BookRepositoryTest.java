@@ -16,7 +16,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.jdbc.Sql;
 
 @DataJpaTest // db와 관련된 컴포넌트만 메모리에 로딩, 컨트롤러,서비스는 메모리에 로딩되지 않음.
-public class BookRepositoryTestjava {
+public class BookRepositoryTest {
 
     @Autowired
     private BookRepository bookRepository;
