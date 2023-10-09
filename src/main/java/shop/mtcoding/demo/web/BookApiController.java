@@ -33,7 +33,6 @@ public class BookApiController {
     // {"key":value,"key":value} .. json 형식으로 받기 위해서는 @RequestBody 어노테이션 걸어줌
     @PostMapping("/api/v1/book")
     public ResponseEntity<?> saveBook(@RequestBody @Valid BookSaveRequestDto requestDto, BindingResult bindingResult) {
-        BookResponseDto bookResponseDto = bookService.registerBook(requestDto);
         if (bindingResult.hasErrors()) {
             Map<String, String> errorMap = new HashMap<>();
             for (FieldError fieldError : bindingResult.getFieldErrors()) {
@@ -41,12 +40,9 @@ public class BookApiController {
                 System.out.println("getField >> " + fieldError.getField());
                 System.out.println("getDefaultMessage >> " + fieldError.getDefaultMessage());
             }
-            return new ResponseEntity<>(CommonResponseDto.builder()
-                    .code(-1)
-                    .msg(errorMap.toString())
-                    .body(bookResponseDto)
-                    .build(), HttpStatus.BAD_REQUEST);
+            throw new RuntimeException(errorMap.toString());
         }
+        BookResponseDto bookResponseDto = bookService.registerBook(requestDto);
         CommonResponseDto<?> commonResponseDto = CommonResponseDto.builder()
                 .code(1)
                 .msg("정상 처리되었습니다.")
