@@ -21,6 +21,7 @@ import shop.mtcoding.demo.domain.BookRepository;
 import shop.mtcoding.demo.domain.Book;
 import shop.mtcoding.demo.util.MailSender;
 import shop.mtcoding.demo.web.dto.request.BookSaveRequestDto;
+import shop.mtcoding.demo.web.dto.response.BookListResponseDto;
 import shop.mtcoding.demo.web.dto.response.BookResponseDto;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,20 +66,15 @@ public class BookServiceTest {
         when(bookRepository.findAll()).thenReturn(books);
 
         // when
-        List<BookResponseDto> bookPS = bookService.getBookList();
+        BookListResponseDto bookListResponseDto = bookService.getBookList();
 
         // print
-        bookPS.stream().forEach((book) -> {
-            System.out.println("DEV TEST CODE LAYER ==================");
-            System.out.println(book.getTitle());
-            System.out.println(book.getAuthor());
-        });
 
         // then
-        assertThat(bookPS.get(0).getTitle()).isEqualTo("Spring 기본");
-        assertThat(bookPS.get(0).getAuthor()).isEqualTo("메타코딩");
-        assertThat(bookPS.get(1).getTitle()).isEqualTo("JPA 기본");
-        assertThat(bookPS.get(1).getAuthor()).isEqualTo("겟인데어");
+        assertThat(bookListResponseDto.getItems().get(0).getTitle()).isEqualTo("Spring 기본");
+        assertThat(bookListResponseDto.getItems().get(0).getAuthor()).isEqualTo("메타코딩");
+        assertThat(bookListResponseDto.getItems().get(1).getTitle()).isEqualTo("JPA 기본");
+        assertThat(bookListResponseDto.getItems().get(1).getAuthor()).isEqualTo("겟인데어");
 
     }
 

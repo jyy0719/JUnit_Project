@@ -1,6 +1,7 @@
 package shop.mtcoding.demo.web;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.jdbc.Sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,7 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 
-import shop.mtcoding.demo.service.BookService;
+import shop.mtcoding.demo.domain.Book;
+import shop.mtcoding.demo.domain.BookRepository;
 import shop.mtcoding.demo.web.dto.request.BookSaveRequestDto;
 
 // 통합테스트 (controller, service, repository)
@@ -27,10 +30,10 @@ import shop.mtcoding.demo.web.dto.request.BookSaveRequestDto;
 public class BookApiControllerTest {
 
     @Autowired
-    private BookService bookService;
+    private TestRestTemplate testRestTemp;
 
     @Autowired
-    private TestRestTemplate testRestTemp;
+    private BookRepository bookRepository;
 
     private static ObjectMapper objectMapper;
     private static HttpHeaders headers;
@@ -40,6 +43,42 @@ public class BookApiControllerTest {
         objectMapper = new ObjectMapper();
         headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+    }
+
+    // 책 목록
+    @Test
+    @BeforeEach
+    public void 데이터준비() {
+        Book book = Book.builder()
+                .title("공룡의 시대")
+                .author("박지용")
+                .build();
+
+        Book bookRp = bookRepository.save(book);
+        bookRp.getId();
+    }
+
+    @Test
+    @Sql("classpath:db/tableInit.sql")
+    public void getBookList_test() {
+        // given
+        // - 매개변수로 받을 데이터 없음.
+        // when
+        HttpEntity<String> request = new HttpEntity<>(null, headers);
+        ResponseEntity<String> response = testRestTemp.exchange(
+                "/api/v1/books", // Host
+                HttpMethod.GET, // Request Method
+                request, // RequestBody
+                String.class); // return String
+
+        // then
+        DocumentContext dc = JsonPath.parse(response.getBody());
+
+        Integer code = dc.read("$.code");
+        String title = dc.read("$.body.items[0].title");
+
+        assertThat(code).isEqualTo(1);
+        assertThat(title).isEqualTo("공룡의 시대");
     }
 
     // 외부 api에서 들어오는 데이터를 가정해야한다.
