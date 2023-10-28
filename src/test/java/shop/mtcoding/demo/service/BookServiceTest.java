@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 import shop.mtcoding.demo.domain.BookRepository;
 import shop.mtcoding.demo.domain.Book;
@@ -25,6 +26,7 @@ import shop.mtcoding.demo.web.dto.response.BookListResponseDto;
 import shop.mtcoding.demo.web.dto.response.BookResponseDto;
 
 @ExtendWith(MockitoExtension.class)
+@ActiveProfiles("dev") // dev 모드 일 때만 작동해라 ( application-dev.yml )
 public class BookServiceTest {
 
     @InjectMocks

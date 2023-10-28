@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +28,7 @@ import shop.mtcoding.demo.web.dto.request.BookSaveRequestDto;
 // 통합테스트 (controller, service, repository)
 // controller 를 단위 테스트 하고 싶으면 Mock 사용해서 하면 된다.
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT) //
+@ActiveProfiles("dev") // dev 모드 일 때만 작동해라 ( application-dev.yml )
 public class BookApiControllerTest {
 
     @Autowired
@@ -45,7 +47,6 @@ public class BookApiControllerTest {
         headers.setContentType(MediaType.APPLICATION_JSON);
     }
 
-    // 책 목록
     @Test
     @BeforeEach
     public void 데이터준비() {
@@ -56,6 +57,77 @@ public class BookApiControllerTest {
 
         Book bookRp = bookRepository.save(book);
         bookRp.getId();
+    }
+
+    // 책 수정
+    @Test
+    @Sql("classpath:db/tableInit.sql")
+    public void updateBook() throws Exception {
+        // given
+        Integer id = 1;
+        BookSaveRequestDto bookSaveRequestDto = new BookSaveRequestDto();
+        bookSaveRequestDto.setAuthor("홍길동 자서전");
+        bookSaveRequestDto.setTitle("스프링1강");
+        String body = objectMapper.writeValueAsString(bookSaveRequestDto);
+
+        // when
+        HttpEntity<String> request = new HttpEntity<String>(body, headers);
+        ResponseEntity<String> response = testRestTemp.exchange(
+                "/api/v1/book/" + id, // Host
+                HttpMethod.PUT, // Request Method
+                request, // RequestBody
+                String.class); // return Object
+        System.out.println(response.getBody());
+
+        // then
+        DocumentContext dc = JsonPath.parse(response.getBody());
+
+        String title = dc.read("$.body.title");
+        String author = dc.read("$.body.author");
+
+        assertThat(title).isEqualTo("스프링1강");
+        assertThat(author).isEqualTo("홍길동 자서전");
+    }
+
+    @Test
+    public void deleteBook() {
+        // given
+        Integer id = 1;
+        // when
+        HttpEntity<String> request = new HttpEntity<>(null, headers);
+        ResponseEntity<String> response = testRestTemp.exchange(
+                "/api/v1/book/" + id, // Host
+                HttpMethod.DELETE, // Request Method
+                request, // RequestBody
+                String.class); // return String
+        // then
+        DocumentContext dc = JsonPath.parse(response.getBody());
+
+        Integer code = dc.read("$.code");
+        assertThat(code).isEqualTo(1);
+    }
+
+    @Test
+    @Sql("classpath:db/tableInit.sql")
+    public void getBook() {
+        // given
+        Integer id = 1;
+        // when
+        HttpEntity<String> request = new HttpEntity<>(null, headers);
+        ResponseEntity<String> response = testRestTemp.exchange(
+                "/api/v1/book/" + id, // Host
+                HttpMethod.GET, // Request Method
+                request, // RequestBody
+                String.class); // return String
+        // then
+        DocumentContext dc = JsonPath.parse(response.getBody());
+
+        Integer code = dc.read("$.code");
+        String title = dc.read("$.body.title");
+
+        assertThat(code).isEqualTo(1);
+        assertThat(title).isEqualTo("공룡의 시대");
+
     }
 
     @Test
