@@ -11,9 +11,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
 @DataJpaTest // db와 관련된 컴포넌트만 메모리에 로딩, 컨트롤러,서비스는 메모리에 로딩되지 않음.
+@ActiveProfiles("dev") // dev 모드 일 때만 작동해라 ( application-dev.yml )
 public class BookRepositoryTest {
 
     @Autowired
@@ -59,19 +61,21 @@ public class BookRepositoryTest {
         // when
         List<Book> book = bookRepository.findAll();
         // then
-        assertThat(book.size()).isEqualTo(0);
+        // assertThat(book.size()).isEqualTo(1);
+        assertEquals("공룡의 시대", book.get(0).getTitle());
     }
 
     // 책 한건보기
     @Test
     // @Order(3)
+    @Sql("classpath:db/tableInit.sql") // id를 넣어 실행하는 테스트 일 땐 붙여주는 것이 좋음
     public void 책한건보기_test() {
         // given
         // -- @BeforeEach 매서드로 상단에서 test 실행 전 데이터 넣고 있음.
         // when
         Book book = bookRepository.findById(1L).get();
         // then
-        assertEquals("공룡의 시대 ", book.getTitle());
+        assertEquals("공룡의 시대", book.getTitle());
         assertEquals("박지용", book.getAuthor());
 
     }
@@ -104,7 +108,7 @@ public class BookRepositoryTest {
         // -- @BeforeEach 매서드로 상단에서 test 실행 전 데이터 넣고 있음.
         Long id = 1L;
         // when
-        // bookRepository.deleteById(id);
+        bookRepository.deleteById(id);
         // then
         Optional<Book> bookPs = bookRepository.findById(id);
         // 방법 1 :
